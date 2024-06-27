@@ -356,3 +356,6 @@ BlazorMovies/Client/bin/
 Server/appsettings.json
 RazorClassLibrary1/
 
+*.jwk
+
+
