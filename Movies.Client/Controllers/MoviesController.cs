@@ -6,23 +6,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Movies.Client.Data;
+using Movies.Client.HttpServices;
 using Movies.Client.Models;
 
 namespace Movies.Client.Controllers
 {
     public class MoviesController : Controller
     {
-        private readonly MoviesClientContext _context;
 
-        public MoviesController(MoviesClientContext context)
+        private readonly IMovieHttpService _movieHttpService;
+        public MoviesController(IMovieHttpService movieHttpService)
         {
-            _context = context;
+            _movieHttpService = movieHttpService;
         }
 
         // GET: Movies
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Movie.ToListAsync());
+            return View(await _movieHttpService.GetMovies());
         }
 
         // GET: Movies/Details/5
@@ -33,8 +34,8 @@ namespace Movies.Client.Controllers
                 return NotFound();
             }
 
-            var movie = await _context.Movie
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var movie = await _movieHttpService.GetMovie(id.GetValueOrDefault());
+
             if (movie == null)
             {
                 return NotFound();
@@ -58,8 +59,7 @@ namespace Movies.Client.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(movie);
-                await _context.SaveChangesAsync();
+                await _movieHttpService.CreateMovie(movie);
                 return RedirectToAction(nameof(Index));
             }
             return View(movie);
@@ -73,7 +73,7 @@ namespace Movies.Client.Controllers
                 return NotFound();
             }
 
-            var movie = await _context.Movie.FindAsync(id);
+            var movie = await _movieHttpService.GetMovie(id.GetValueOrDefault());
             if (movie == null)
             {
                 return NotFound();
@@ -97,12 +97,11 @@ namespace Movies.Client.Controllers
             {
                 try
                 {
-                    _context.Update(movie);
-                    await _context.SaveChangesAsync();
+                    await _movieHttpService.UpdateMovie(movie);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!MovieExists(movie.Id))
+                    if (await MovieExists(movie.Id) == false)
                     {
                         return NotFound();
                     }
@@ -124,8 +123,8 @@ namespace Movies.Client.Controllers
                 return NotFound();
             }
 
-            var movie = await _context.Movie
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var movie = await _movieHttpService.GetMovie(id.GetValueOrDefault());
+
             if (movie == null)
             {
                 return NotFound();
@@ -139,19 +138,20 @@ namespace Movies.Client.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var movie = await _context.Movie.FindAsync(id);
+            var movie = await _movieHttpService.GetMovie(id);
             if (movie != null)
             {
-                _context.Movie.Remove(movie);
+                await _movieHttpService.DeleteMovie(id);
             }
 
-            await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
-        private bool MovieExists(int id)
+        private async  Task<bool> MovieExists(int id)
         {
-            return _context.Movie.Any(e => e.Id == id);
+            var movie = await _movieHttpService.GetMovie(id);
+            return movie == null ? false: true;
         }
     }
 }

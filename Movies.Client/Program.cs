@@ -1,12 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Build.Execution;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Movies.Client.Data;
+using Movies.Client.HttpServices;
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<MoviesClientContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MoviesClientContext") ?? throw new InvalidOperationException("Connection string 'MoviesClientContext' not found.")));
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IMovieHttpService,MovieHttpService>();   
 
 var app = builder.Build();
 
