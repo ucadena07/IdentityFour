@@ -1,16 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Movies.Client.Data;
 using Movies.Client.HttpServices;
 using Movies.Client.Models;
 
 namespace Movies.Client.Controllers
 {
+    [Authorize]
     public class MoviesController : Controller
     {
 
@@ -20,9 +27,22 @@ namespace Movies.Client.Controllers
             _movieHttpService = movieHttpService;
         }
 
+        public async Task LogTokenAndClaims()
+        {
+            var identityToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.IdToken);
+            Debug.WriteLine($"Identity Token: {identityToken}");
+
+            foreach (var claim in User.Claims)
+            {
+                Debug.WriteLine($"Claim Type: {claim.Type} - Claim Value: {claim.Value}");
+            }
+
+        }
+
         // GET: Movies
         public async Task<IActionResult> Index()
         {
+            await LogTokenAndClaims();    
             return View(await _movieHttpService.GetMovies());
         }
 
@@ -152,6 +172,12 @@ namespace Movies.Client.Controllers
         {
             var movie = await _movieHttpService.GetMovie(id);
             return movie == null ? false: true;
+        }
+
+        public async Task Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);   
+            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);   
         }
     }
 }

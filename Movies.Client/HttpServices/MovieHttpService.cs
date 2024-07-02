@@ -14,28 +14,28 @@ public interface IMovieHttpService
 
 public class MovieHttpService : IMovieHttpService
 {
-    public Task<Movie> CreateMovie(Movie movie)
+    public async Task<Movie> CreateMovie(Movie movie)
     {
-        throw new NotImplementedException();
+        return new();
     }
 
-    public Task DeleteMovie(int id)
+    public async Task DeleteMovie(int id)
     {
-        throw new NotImplementedException();
+
     }
 
-    public Task<Movie> GetMovie(int id)
+    public async Task<Movie> GetMovie(int id)
     {
-        throw new NotImplementedException();
+        return new();
     }
 
-    public Task<IEnumerable<Movie>> GetMovies()
+    public async Task<IEnumerable<Movie>> GetMovies()
     {
-        throw new NotImplementedException();
+        return new List<Movie>();
     }
 
-    public Task<Movie> UpdateMovie(Movie movie)
+    public async Task<Movie> UpdateMovie(Movie movie)
     {
-        throw new NotImplementedException();
+        return new();
     }
 }

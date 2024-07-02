@@ -1,4 +1,6 @@
-﻿using Microsoft.Build.Execution;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Build.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Movies.Client.Data;
@@ -8,7 +10,31 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<IMovieHttpService,MovieHttpService>();   
+builder.Services.AddScoped<IMovieHttpService,MovieHttpService>();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+.AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
+{
+    options.Authority = "https://localhost:7042";
+    options.ClientId = "movies_mvc_client";
+    options.ClientSecret = "secret";
+    options.ResponseType = "code";
+
+    options.Scope.Add("openid");
+    options.Scope.Add("profile");
+
+    options.SaveTokens = true;
+    options.GetClaimsFromUserInfoEndpoint = true;   
+
+});
+
+
+
 
 var app = builder.Build();
 
@@ -24,6 +50,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseAuthentication();    
 
 app.UseAuthorization();
 
