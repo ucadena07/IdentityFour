@@ -37,6 +37,7 @@ namespace IdentityServer
                     {
                          "https://localhost:7116/signout-callback-oidc"
                     },
+                    
                     ClientSecrets =
                     {
                         new Secret("secret".Sha256())
